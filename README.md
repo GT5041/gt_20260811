@@ -5,7 +5,7 @@ MCP (Model Context Protocol) サーバー実装です。ローカル JSON を「
 見立て、`lookup_order` / `check_return_eligibility` / `process_return` /
 `get_billing_status` / `escalate_to_human` の5つのツールを提供します。
 
-会話フロー（ユーザーID確認 → 返品/請求/その他への振り分け → オペレーター対応の
+会話フロー（ユーザーID確認 → 返品/請求/それ以外への振り分け → オペレーター対応の
 ターン数制御）そのものは MCP ツールの範囲外（呼び出し側 LLM エージェントの役割）のため、
 [ORCHESTRATION.md](./ORCHESTRATION.md) に呼び出し側へ設定するシステムプロンプト例を
 まとめています。
@@ -64,7 +64,7 @@ MCP_HTTP_TOKEN=<任意の秘密トークン> MCP_TODAY=2026-08-11 npm run start:
   ヘッダーを付与してリクエストしてください。
 - `PORT`（既定 `3000`）・`HOST`（既定 `0.0.0.0`）で待受先を変更できます。
 - `GET /healthz` は認証不要のヘルスチェック用エンドポイントです（デプロイ先の
-  ロードバランサ等からの疑通確認を想定）。
+  ロードバランサ等からの疎通確認を想定）。
 - セッション状態（`mcp-session-id` ごとの McpServer/Transport ペア）はプロセス内
   メモリで管理しています。複数インスタンスへスケールする場合は、ロードバランサの
   セッションアフィニティ設定、または外部ストアへの置き換えが必要です。
@@ -100,7 +100,7 @@ PaaS（自前VM、Fly.io、Render 等）にこのプロセスをデプロイし�
 npm test
 ```
 
-HTTP transport 版の簡易疊通確認用スクリプトも用意しています
+HTTP transport 版の簡易疎通確認用スクリプトも用意しています
 （サーバーを別途起動した状態で実行してください）。
 
 ```bash
@@ -122,7 +122,7 @@ src/server.ts             McpServer 定義・起動（stdio/HTTP共通）
 src/index.ts               エントリポイント（stdio）
 src/httpServer.ts           エントリポイント（Streamable HTTP・Bearer認証付き）
 tests/integration.test.mjs 統合テスト（stdio）
-tests/http.smoke.mjs        HTTP transport の簡易疊通確認スクリプト
+tests/http.smoke.mjs        HTTP transport の簡易疎通確認スクリプト
 ORCHESTRATION.md            呼び出し側エージェント向けシステムプロンプト例
 ```
 
@@ -144,8 +144,8 @@ ORCHESTRATION.md            呼び出し側エージェント向けシステム�
 ### 製品
 
 - コカ・コーラ(500ml) 12本入りパック（¥1,800）
-- 爨健美茶(350ml) 24本入りパック（¥2,400）
-- 吉野家牛丯お得パック 18個入り（¥5,400）
+- 爽健美茶(350ml) 24本入りパック（¥2,400）
+- 吉野家牛丼お得パック 18個入り（¥5,400）
 
 ### 注文
 
@@ -180,7 +180,7 @@ ORCHESTRATION.md            呼び出し側エージェント向けシステム�
 ### 3. `process_return`
 
 返品可能な注文について、返品理由を受け取り返品を確定する。処理後、ユーザーの登録
-メールアドレス宛てに返品受付通知メールを送信する（本サンプルでは実送信せず、内容を
+メールアドレス宛に返品受付通知メールを送信する（本サンプルでは実送信せず、内容を
 そのままレスポンスに含めることでシミュレートしています）。
 
 - 入力: `{ order_id: string, reason: string }`
