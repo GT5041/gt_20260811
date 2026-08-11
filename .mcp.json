@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "return-billing": {
+      "command": "npx",
+      "args": ["tsx", "src/index.ts"],
+      "env": {
+        "MCP_TODAY": "2026-08-11"
+      }
+    }
+  }
+}
