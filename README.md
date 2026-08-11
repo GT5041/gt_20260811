@@ -48,6 +48,49 @@ MCP_TODAY=2026-08-11 npm start
 }
 ```
 
+### 起動（Streamable HTTP・外部公開用）
+
+stdio（ローカルプロセス起動）に加えて、通常のHTTPサーバーとして起動できる
+Streamable HTTP transport 版のエントリポイントも用意しています。これを使うと、
+`https://your-domain/mcp` のような **URLをエンドポイントに** MCPクライアントから
+接続できます。
+
+```bash
+MCP_HTTP_TOKEN=<任意の秘密トークン> MCP_TODAY=2026-08-11 npm run start:http
+```
+
+- `MCP_HTTP_TOKEN` は必須です。未設定の場合、認証なしでの誤公開を防ぐため
+  起動時にエラーで終了します。クライアント側は `Authorization: Bearer <token>`
+  ヘッダーを付与してリクエストしてください。
+- `PORT`（既定 `3000`）・`HOST`（既定 `0.0.0.0`）で待受先を変更できます。
+- `GET /healthz` は認証不要のヘルスチェック用エンドポイントです（デプロイ先の
+  ロードバランサ等からの疎通確認を想定）。
+- セッション状態（`mcp-session-id` ごとの McpServer/Transport ペア）はプロセス内
+  メモリで管理しています。複数インスタンスへスケールする場合は、ロードバランサの
+  セッションアフィニティ設定、または外部ストアへの置き換えが必要です。
+
+**注意**: このリポジトリのコードはHTTPサーバーとして起動できるようにするところ
+までが範囲です。実際に「外部からアクセス可能なURL」にするには、どこかのサーバー・
+PaaS（自前VM、Fly.io、Render 等）にこのプロセスをデプロイし、ドメインとTLS
+（HTTPS）を用意する必要があります。ローカルで一時的に外部公開して試したいだけの
+場合は、`ngrok http 3000` や Cloudflare Tunnel などのトンネリングツールで
+`npm run dev:http` のプロセスを一時公開する方法が手軽です。
+
+#### Claude Desktop などからの利用例（HTTP）
+
+```json
+{
+  "mcpServers": {
+    "return-billing-http": {
+      "url": "https://your-domain.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <MCP_HTTP_TOKENと同じ値>"
+      }
+    }
+  }
+}
+```
+
 ### テスト
 
 `@modelcontextprotocol/sdk` の Client / StdioClientTransport を使い、実際に
@@ -55,6 +98,14 @@ MCP_TODAY=2026-08-11 npm start
 
 ```bash
 npm test
+```
+
+HTTP transport 版の簡易疎通確認用スクリプトも用意しています
+（サーバーを別途起動した状態で実行してください）。
+
+```bash
+MCP_HTTP_TOKEN=test-secret-token PORT=3917 npm run start:http &
+node tests/http.smoke.mjs http://127.0.0.1:3917/mcp test-secret-token
 ```
 
 ## ディレクトリ構成
@@ -67,9 +118,11 @@ src/returnEligibility.ts 返品可否判定ロジック（check_return_eligibili
 src/escalation.ts        エスカレーション・セッションのターン数管理
 src/mail.ts               返品通知メール送信のシミュレーション（メモリ上にログ）
 src/tools/*.ts            5つのMCPツールの実装
-src/server.ts             McpServer 定義・起動
-src/index.ts               エントリポイント
-tests/integration.test.mjs 統合テスト
+src/server.ts             McpServer 定義・起動（stdio/HTTP共通）
+src/index.ts               エントリポイント（stdio）
+src/httpServer.ts           エントリポイント（Streamable HTTP・Bearer認証付き）
+tests/integration.test.mjs 統合テスト（stdio）
+tests/http.smoke.mjs        HTTP transport の簡易疎通確認スクリプト
 ORCHESTRATION.md            呼び出し側エージェント向けシステムプロンプト例
 ```
 
@@ -91,8 +144,8 @@ ORCHESTRATION.md            呼び出し側エージェント向けシステム�
 ### 製品
 
 - コカ・コーラ(500ml) 12本入りパック（¥1,800）
-- 爨健美茶(350ml) 24本入りパック（¥2,400）
-- 吉野家牛丯お得パック 18個入り（¥5,400）
+- 爽健美茶(350ml) 24本入りパック（¥2,400）
+- 吉野家牛丼お得パック 18個入り（¥5,400）
 
 ### 注文
 
@@ -127,7 +180,7 @@ ORCHESTRATION.md            呼び出し側エージェント向けシステム�
 ### 3. `process_return`
 
 返品可能な注文について、返品理由を受け取り返品を確定する。処理後、ユーザーの登録
-メールアドレス宛てに返品受付通知メールを送信する（本サンプルでは実送信せず、内容を
+メールアドレス宛に返品受付通知メールを送信する（本サンプルでは実送信せず、内容を
 そのままレスポンスに含めることでシミュレートしています）。
 
 - 入力: `{ order_id: string, reason: string }`

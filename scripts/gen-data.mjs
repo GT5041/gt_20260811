@@ -11,8 +11,8 @@ const users = [
 
 const products = [
   { code: "COKE500", name: "コカ・コーラ(500ml) 12本入りパック", unit_price_jpy: 1800 },
-  { code: "SOKENBI350", name: "爨健美茶(350ml) 24本入りパック", unit_price_jpy: 2400 },
-  { code: "GYUDON18", name: "吉野家牛丯お得パック 18個入り", unit_price_jpy: 5400 },
+  { code: "SOKENBI350", name: "爽健美茶(350ml) 24本入りパック", unit_price_jpy: 2400 },
+  { code: "GYUDON18", name: "吉野家牛丼お得パック 18個入り", unit_price_jpy: 5400 },
 ];
 
 const orderDates = ["2026-08-01", "2026-07-01", "2026-06-01"];
